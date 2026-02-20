@@ -4,3 +4,4 @@ __pycache__/
 streamed_*.mp3
 .DS_Store
 performance_log.txt
+stress_test_log.txt
