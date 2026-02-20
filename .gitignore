@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+*.log
+streamed_*.mp3
+.DS_Store
+performance_log.txt
