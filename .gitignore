@@ -5,3 +5,5 @@ streamed_*.mp3
 .DS_Store
 performance_log.txt
 stress_test_log.txt
+certs/server.crt
+certs/server.key
