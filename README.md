@@ -74,6 +74,12 @@ All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in th
 - OpenSSL (for generating self-signed certificates)
 - No third-party packages required
 
+## Platform Notes
+
+- Linux / macOS: Python command may be `python3`
+- Windows: Python command is usually `python`
+- Commands can be run in Terminal (Linux/macOS) or PowerShell / Windows Terminal (Windows)
+
 ---
 
 ## Setup
@@ -86,19 +92,36 @@ cd Online-Music-Streaming-Server
 ```
 
 ### 2. Generate a self-signed TLS certificate
-
-```bash
+- For Linux /macOS systems
+```bash 
 mkdir -p certs
 openssl req -x509 -newkey rsa:4096 -keyout certs/server.key \
   -out certs/server.crt -days 365 -nodes \
   -subj "/CN=localhost"
 ```
-
+- For Windows systems
+```bash 
+mkdir certs
+openssl req -x509 -newkey rsa:4096 -keyout certs/server.key -out certs/server.crt -days 365 -nodes -subj "/CN=localhost"
+```
+- Note Windows users: 
+If OpenSSL is not installed, need to restart terminal after running: 
+``` winget install ShiningLight.OpenSSL.Light ```
+If OpenSSL is not recognized, try version:
+```bash
+"C:\Program Files\Git\mingw64\bin\openssl.exe" req -x509 -newkey rsa:4096 -keyout certs/server.key -out certs/server.crt -days 365 -nodes -subj "/CN=localhost"
+``` 
 ### 3. Add songs
-
+Copy your audio file into the `songs` folder.
+- For Linux /macOS systems
 ```bash
 mkdir -p songs
 cp /path/to/your/audio.mp3 songs/
+```
+- For Windows systems
+```bash
+mkdir songs
+copy "C:\path\to\your\audio.mp3" songs\
 ```
 
 ---
@@ -141,12 +164,12 @@ Enter song name (e.g., song.mp3): song.mp3
 ### Run a multi-client stress test
 
 ```bash
-python stress_test.py --song song.mp3 --clients 10
+python stress_test.py --song sample.mp3 --clients 10
 ```
 
 ```
 ══════════════════════════════════════════════════
-  Stress Test: 10 concurrent clients → 'song.mp3'
+  Stress Test: 10 concurrent clients → 'sample.mp3'
 ══════════════════════════════════════════════════
   [✓] Client 01 | status: OK               | latency:    2.1 ms | speed: 3.82 MB/s
   [✓] Client 02 | status: OK               | latency:    2.4 ms | speed: 3.71 MB/s
@@ -185,6 +208,7 @@ secure-music-streamer/
 │   ├── server.crt      # TLS certificate (generated)
 │   └── server.key      # TLS private key (generated)
 ├── songs/              # Place your .mp3 / .wav files here
+│   ├── sample.mp3      # Please Do not remove this file it is used for stress_test.py
 └── README.md
 ```
 
