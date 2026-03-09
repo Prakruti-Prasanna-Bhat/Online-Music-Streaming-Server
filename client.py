@@ -38,7 +38,7 @@ def play_file(filepath):
     if platform.system() == 'Darwin':
         os.system(f"open '{filepath}'")
     elif platform.system() == 'Windows':
-        os.system(f"start {filepath}")
+        os.system(f'start "" "{filepath}"')
     else:
         os.system(f"xdg-open '{filepath}'")
 
