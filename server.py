@@ -86,17 +86,20 @@ def handle_client(conn: ssl.SSLSocket, addr):
             conn.sendall(b"ERROR: Read timeout\n")
             log.warning(f"[!] {addr} read error: {e}")
             return
-
         # ── Validate protocol ──────────────────────────────────────────────────
-        parts = request.split()
-        if len(parts) != 2 or parts[0] != "PLAY":
+        if not request.startswith("PLAY "):
             conn.sendall(b"ERROR: Invalid Protocol. Usage: PLAY <song>\n")
             log.warning(f"[!] {addr} bad request: {request!r}")
             return
 
-        song_name = parts[1]
-        file_path = safe_song_path(song_name)
+        song_name = request[5:].strip()
+        if not song_name:
+            conn.sendall(b"ERROR: Missing song name\n")
+            log.warning(f"[!] {addr} missing song name: {request!r}")
+            return
 
+        file_path = safe_song_path(song_name)
+        
         if file_path is None:
             conn.sendall(b"ERROR: Invalid filename\n")
             log.warning(f"[!] {addr} path traversal attempt: {song_name!r}")
