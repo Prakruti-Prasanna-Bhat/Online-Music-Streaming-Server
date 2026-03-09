@@ -81,7 +81,7 @@ All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in th
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/<your-username>/secure-music-streamer.git
+git clone https://github.com/Prakruti-Prasanna-Bhat/Online-Music-Streaming-Server.git
 cd secure-music-streamer
 ```
 
