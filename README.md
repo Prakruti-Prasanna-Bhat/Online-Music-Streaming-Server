@@ -1,8 +1,21 @@
-# 🎵 Secure Adaptive Music Streamer
+# Secure Adaptive Music Streamer
 
 A secure, multi-client TCP music streaming application built with raw Python sockets and SSL/TLS.  
-Designed for the **Networked Applications** project — demonstrates socket programming, concurrency, adaptive streaming, QoS evaluation, and secure communication.
+Designed for the **Networked Applications** project — demonstrates socket programming, concurrency, adaptive buffer streaming, QoS evaluation, and secure communication.
 
+## Problem Statement
+
+Many distributed systems require secure file transfer across unreliable
+networks while supporting multiple concurrent users.
+
+This project implements a secure TCP-based music streaming system
+that demonstrates:
+
+- low-level socket communication
+- encrypted transport using TLS
+- concurrent client handling
+- protocol design
+- performance evaluation under load
 ---
 
 ## Architecture
@@ -15,7 +28,7 @@ Designed for the **Networked Applications** project — demonstrates socket prog
 │       │                                                 │
 │  SSL/TLS Wrap (TLS 1.2+)                                │
 │       │                                                 │
-│  Thread Pool (one thread per client)                    │
+│  Thread-per-client concurrency model                    │
 │    ├── Client 1 Handler                                 │
 │    ├── Client 2 Handler  ← concurrent                   │
 │    └── Client N Handler                                 │
@@ -50,8 +63,21 @@ Server → Client:   <raw binary chunks until EOF>
 
 All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in the header allows the client to verify data integrity after transfer.
 
----
+### Design Decisions
 
+- TCP vs UDP:
+TCP was chosen because it guarantees reliable, ordered delivery of
+audio data without requiring additional packet reassembly logic.
+
+- Thread-per-client model:
+Each client is handled in a dedicated thread to simplify concurrency
+management and ensure independent streaming sessions.
+
+- TLS encryption:
+TLS is used to secure both control messages and audio data during
+transmission, preventing interception or tampering.
+
+---
 ## Features
 
 | Feature | Details |
@@ -60,7 +86,8 @@ All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in th
 | **Multi-Client** | Each client gets its own thread; server tracks aggregate stats |
 | **Buffer Management** | Adaptive: 4 KB / 8 KB / 64 KB based on live throughput |
 | **Packet Loss Handling** | Byte-count check + MD5 integrity verify; auto-retry up to 3× |
-| **Adaptive Streaming** | Buffer re-evaluated every 0.5 s mid-stream |
+| **Adaptive Buffer Streaming** | Buffer re-evaluated every 0.5 s mid-stream.The client dynamically adjusts the receive buffer size based on
+measured throughput during streaming. |
 | **QoS Evaluation** | Latency, throughput, quality rating (Good/Fair/Poor), logged to file |
 | **Performance Logging** | Per-session log (`performance_log.txt`) + server aggregate log |
 | **Stress Testing** | `stress_test.py` simulates N concurrent clients with summary stats |
@@ -202,7 +229,7 @@ python stress_test.py --song sample.mp3 --clients 10
 ```
 secure-music-streamer/
 ├── server.py           # Multi-client TLS streaming server
-├── client.py           # Adaptive streaming client
+├── client.py           # Adaptive Buffer Streaming client
 ├── stress_test.py      # Concurrent client performance tester
 ├── certs/
 │   ├── server.crt      # TLS certificate (generated)
