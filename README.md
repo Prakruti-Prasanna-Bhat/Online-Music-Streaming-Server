@@ -6,24 +6,56 @@
 ![Concurrency](https://img.shields.io/badge/concurrency-Multi--Client-purple)
 
 A secure, multi-client TCP music streaming application built with raw Python sockets and SSL/TLS.  
-Developed for the **Networked Applications** course project — demonstrates socket programming, concurrency, adaptive streaming logic, QoS evaluation, and secure communication.
+Developed for the **Computer Networks** course project — demonstrates socket programming,
+concurrency, adaptive streaming logic, QoS evaluation, and secure communication.
 
 ---
 
-## Problem Statement
+## 🚀 Highlights
 
-This project implements an Online Music Streaming Server that streams audio files efficiently to multiple concurrent clients over a secure TCP connection.
+- Secure TCP streaming using TLS encryption
+- Multi-client support using a thread-per-client architecture
+- Adaptive streaming logic with dynamic receive buffer sizing
+- QoS evaluation using latency and throughput metrics
+- Stress testing to evaluate performance under concurrent load
+
+---
+
+## 📑 Table of Contents
+
+- [Problem Statement](#problem-statement)
+- [Objectives](#objectives)
+- [Architecture](#architecture)
+- [Protocol Design](#protocol-design)
+- [Socket Implementation Overview](#socket-implementation-overview)
+- [Features](#features)
+- [Optimizations and Edge Case Handling](#optimizations-and-edge-case-handling)
+- [Requirements](#requirements)
+- [Setup](#setup)
+- [Usage](#usage)
+- [Performance Evaluation](#performance-evaluation)
+- [Log Files](#log-files)
+- [File Structure](#file-structure)
+- [Security Notes](#security-notes)
+
+---
+
+## 📌 Problem Statement
+
+This project implements an Online Music Streaming Server that streams audio files efficiently
+to multiple concurrent clients over a secure TCP connection.
 
 The system demonstrates:
-- Low-level socket communication (creation, binding, listening, connection handling, data transmission)
-- Encrypted transport using TLS 1.2+
-- Concurrent multi-client handling via a thread-per-client model
-- Custom application-level protocol design
-- Performance evaluation under concurrent load
+
+- **Low-level socket communication** (creation, binding, listening, connection handling, data transmission)
+- **TLS encrypted transport** using TLS 1.2+
+- **Concurrent multi-client handling** via a thread-per-client model
+- **Custom application-level protocol** design
+- **Performance evaluation** under concurrent load
 
 ---
 
-## Objectives
+## 🎯 Objectives
 
 - Implement secure communication using TLS over raw TCP sockets
 - Support multiple concurrent clients using a thread-per-client architecture
@@ -33,7 +65,9 @@ The system demonstrates:
 
 ---
 
-## Architecture
+## 🏗️ Architecture
+
+The following diagram shows the interaction between the server and multiple clients in the streaming system.
 
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -60,14 +94,16 @@ The system demonstrates:
 │  Recv:  OK <file_size> <md5_checksum>  (header)       │
 │  Recv:  <binary audio data>            (stream)       │
 │                                                       │
-│  Adaptive Streaming Buffer  (4KB / 8KB / 64KB based on speed)   │
+│  Adaptive Streaming Buffer (4KB / 8KB / 64KB)         │
 │  Integrity Check  (byte count + MD5 verify)           │
 │  Auto-Retry       (up to 3 attempts on failure)       │
 │  QoS Metrics      (latency, throughput, quality)      │
 └───────────────────────────────────────────────────────┘
 ```
 
-### Protocol Design
+---
+
+## 📡 Protocol Design
 
 ```
 Client → Server:   PLAY <song_name>\n
@@ -76,9 +112,12 @@ Server → Client:   OK <file_size> <md5_hex>\n       (success)
 Server → Client:   <raw binary chunks until EOF>
 ```
 
-All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in the header allows the client to verify data integrity after the full transfer completes.
+All exchanges happen over a TLS-encrypted TCP connection. The MD5 checksum in the header
+allows the client to verify data integrity after the full transfer completes.
 
-### Socket Implementation Overview
+---
+
+## ⚙️ Socket Implementation Overview
 
 The application uses low-level Python socket APIs directly — no high-level networking frameworks are involved.
 
@@ -96,7 +135,7 @@ The application uses low-level Python socket APIs directly — no high-level net
 - `sendall()` — transmit the PLAY request
 - `recv()` — receive the response header and audio stream
 
-### Design Decisions
+**Design Decisions:**
 
 - **TCP vs UDP:** TCP was chosen because it guarantees reliable, ordered delivery of audio data without requiring custom packet reassembly or loss-recovery logic at the application layer.
 
@@ -110,7 +149,7 @@ The application uses low-level Python socket APIs directly — no high-level net
 
 ---
 
-## Features
+## ⭐ Features
 
 | Feature | Details |
 |---|---|
@@ -126,7 +165,7 @@ The application uses low-level Python socket APIs directly — no high-level net
 
 ---
 
-## Optimizations and Edge Case Handling
+## 🛠 Optimizations and Edge Case Handling
 
 The following issues were identified during testing and addressed:
 
@@ -134,7 +173,7 @@ The following issues were identified during testing and addressed:
 |---|---|
 | Abrupt client disconnection mid-stream | `BrokenPipeError` / `ConnectionResetError` caught per-chunk; session cleaned up gracefully |
 | SSL handshake failure from bad client | Caught at `accept()` loop — server logs and continues without crashing |
-| Invalid or path-traversal filenames | `os.path.basename()` + `realpath()` check blocks any `../` traversal attempts |
+| Invalid or path-traversal filenames | `os.path.basename()` + `realpath()` check blocks directory traversal attempts such as `../` |
 | Slow/unresponsive clients | 30-second per-client receive timeout prevents thread exhaustion |
 | Incomplete transfer | Byte count compared to expected file size; triggers retry if short |
 | Corrupted data in transit | MD5 checksum verified after transfer; corrupted file deleted and retried |
@@ -142,22 +181,21 @@ The following issues were identified during testing and addressed:
 
 ---
 
-## Requirements
+## 📦 Requirements
 
 - **Implementation Language:** Python (using only the standard library: `socket`, `ssl`, `threading`, `hashlib`)
 - Python 3.10+
 - OpenSSL (for generating self-signed certificates)
 - No third-party packages required
 
-## Platform Notes
-
+**Platform Notes:**
 - Linux / macOS: use `python3` command
 - Windows: use `python` command
 - Commands can be run in Terminal (Linux/macOS) or PowerShell / Windows Terminal (Windows)
 
 ---
 
-## Setup
+## ⚡ Setup
 
 ### 1. Clone the repo
 
@@ -203,7 +241,7 @@ copy "C:\path\to\your\audio.mp3" songs\
 
 ---
 
-## Usage
+## ▶ Usage
 
 ### Start the server
 ```bash
@@ -237,6 +275,8 @@ Enter song name (e.g., song.mp3): sample.mp3
 ```bash
 python stress_test.py --song sample.mp3 --clients 10
 ```
+
+Example output from a stress test with 10 concurrent clients:
 ```
 ══════════════════════════════════════════════════
   Stress Test: 10 concurrent clients → 'sample.mp3'
@@ -270,7 +310,7 @@ python stress_test.py --song sample.mp3 --clients 10
 
 ---
 
-## Performance Evaluation
+## 📊 Performance Evaluation
 
 Run `stress_test.py` with increasing client counts to observe scalability:
 
@@ -281,6 +321,7 @@ python stress_test.py --song sample.mp3 --clients 20
 ```
 
 Expected observations:
+
 - **Latency** increases slightly with more concurrent clients due to thread scheduling overhead
 - **Throughput per client** decreases as more clients share available bandwidth
 - All sessions complete with integrity verified — no data loss under concurrent load
@@ -290,7 +331,7 @@ These results demonstrate that the system maintains reliable and secure streamin
 
 ---
 
-## Log Files
+## 📝 Log Files
 
 | File | Contents |
 |---|---|
@@ -300,10 +341,10 @@ These results demonstrate that the system maintains reliable and secure streamin
 
 ---
 
-## File Structure
+## 📂 File Structure
 
 ```
-secure-music-streamer/
+Online-Music-Streaming-Server/
 ├── server.py             # Multi-client TLS streaming server
 ├── client.py             # Adaptive streaming client
 ├── stress_test.py        # Concurrent client performance tester
@@ -318,7 +359,7 @@ secure-music-streamer/
 
 ---
 
-## Security Notes
+## 🔐 Security Notes
 
 - All data is encrypted in transit using TLS 1.2 or higher
 - Server enforces `TLSVersion.TLSv1_2` minimum — older clients are rejected
