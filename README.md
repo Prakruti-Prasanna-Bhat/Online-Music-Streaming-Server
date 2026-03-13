@@ -11,7 +11,7 @@ concurrency, adaptive streaming logic, QoS evaluation, and secure communication.
 
 ---
 
-## 🚀 Highlights
+## Highlights 🚀
 
 - Secure TCP streaming using TLS encryption
 - Multi-client support using a thread-per-client architecture
@@ -21,7 +21,7 @@ concurrency, adaptive streaming logic, QoS evaluation, and secure communication.
 
 ---
 
-## 📑 Table of Contents
+## Table of Contents 📑
 
 - [Problem Statement](#problem-statement)
 - [Objectives](#objectives)
@@ -40,7 +40,7 @@ concurrency, adaptive streaming logic, QoS evaluation, and secure communication.
 
 ---
 
-## 📌 Problem Statement
+## <a id="problem-statement"></a>Problem Statement 📌
 
 This project implements an Online Music Streaming Server that streams audio files efficiently
 to multiple concurrent clients over a secure TCP connection.
@@ -55,7 +55,7 @@ The system demonstrates:
 
 ---
 
-## 🎯 Objectives
+## <a id="objectives"></a>Objectives 🎯
 
 - Implement secure communication using TLS over raw TCP sockets
 - Support multiple concurrent clients using a thread-per-client architecture
@@ -65,7 +65,7 @@ The system demonstrates:
 
 ---
 
-## 🏗️ Architecture
+## <a id="architecture"></a>Architecture 🏗️
 
 The following diagram shows the interaction between the server and multiple clients in the streaming system.
 
@@ -103,7 +103,7 @@ The following diagram shows the interaction between the server and multiple clie
 
 ---
 
-## 📡 Protocol Design
+## <a id="protocol-design"></a>Protocol Design 📡
 
 ```
 Client → Server:   PLAY <song_name>\n
@@ -117,7 +117,7 @@ allows the client to verify data integrity after the full transfer completes.
 
 ---
 
-## ⚙️ Socket Implementation Overview
+## <a id="socket-implementation-overview"></a>Socket Implementation Overview ⚙️
 
 The application uses low-level Python socket APIs directly — no high-level networking frameworks are involved.
 
@@ -149,7 +149,7 @@ The application uses low-level Python socket APIs directly — no high-level net
 
 ---
 
-## ⭐ Features
+## <a id="features"></a>Features ⭐
 
 | Feature | Details |
 |---|---|
@@ -165,7 +165,7 @@ The application uses low-level Python socket APIs directly — no high-level net
 
 ---
 
-## 🛠 Optimizations and Edge Case Handling
+## <a id="optimizations-and-edge-case-handling"></a>Optimizations and Edge Case Handling 🛠
 
 The following issues were identified during testing and addressed:
 
@@ -181,7 +181,7 @@ The following issues were identified during testing and addressed:
 
 ---
 
-## 📦 Requirements
+## <a id="requirements"></a>Requirements 📦
 
 - **Implementation Language:** Python (using only the standard library: `socket`, `ssl`, `threading`, `hashlib`)
 - Python 3.10+
@@ -195,7 +195,7 @@ The following issues were identified during testing and addressed:
 
 ---
 
-## ⚡ Setup
+## <a id="setup"></a>Setup ⚡
 
 ### 1. Clone the repo
 
@@ -241,7 +241,7 @@ copy "C:\path\to\your\audio.mp3" songs\
 
 ---
 
-## ▶ Usage
+## <a id="usage"></a>Usage ▶
 
 ### Start the server
 ```bash
@@ -310,7 +310,7 @@ Example output from a stress test with 10 concurrent clients:
 
 ---
 
-## 📊 Performance Evaluation
+## <a id="performance-evaluation"></a>Performance Evaluation 📊
 
 Run `stress_test.py` with increasing client counts to observe scalability:
 
@@ -331,7 +331,7 @@ These results demonstrate that the system maintains reliable and secure streamin
 
 ---
 
-## 📝 Log Files
+## <a id="log-files"></a>Log Files 📝
 
 | File | Contents |
 |---|---|
@@ -341,7 +341,7 @@ These results demonstrate that the system maintains reliable and secure streamin
 
 ---
 
-## 📂 File Structure
+## <a id="file-structure"></a>File Structure 📂
 
 ```
 Online-Music-Streaming-Server/
@@ -359,7 +359,7 @@ Online-Music-Streaming-Server/
 
 ---
 
-## 🔐 Security Notes
+## <a id="security-notes"></a>Security Notes 🔐
 
 - All data is encrypted in transit using TLS 1.2 or higher
 - Server enforces `TLSVersion.TLSv1_2` minimum — older clients are rejected
