@@ -175,14 +175,13 @@ def main():
             client_conn, client_addr = secure_server.accept()
             client_conn.settimeout(30.0)   # per-client recv timeout
         except ssl.SSLError as e:
-            # Bad handshake — log and keep running
             log.warning(f"[SSL] Handshake failed: {e}")
             continue
+        except socket.timeout:
+            continue   # no connection in last 1s, loop again (allows Ctrl+C)
         except KeyboardInterrupt:
             log.info("[*] Server shutting down.")
             break
-        except socket.timeout:
-            continue   # no connection in last 1s, loop again (allows Ctrl+C)
         except Exception as e:
             log.error(f"[!] Accept error: {e}")
             continue
