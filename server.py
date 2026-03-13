@@ -25,10 +25,15 @@ logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s",
     handlers=[
-        logging.FileHandler(LOG_FILE),
+        logging.FileHandler(LOG_FILE, encoding="utf-8"),
         logging.StreamHandler()
     ]
 )
+# Fix Windows terminal encoding for special characters
+import sys
+if sys.platform == "win32":
+    import io
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace")
 log = logging.getLogger(__name__)
 
 # ── Global Stats (thread-safe) ─────────────────────────────────────────────────
@@ -86,20 +91,17 @@ def handle_client(conn: ssl.SSLSocket, addr):
             conn.sendall(b"ERROR: Read timeout\n")
             log.warning(f"[!] {addr} read error: {e}")
             return
+
         # ── Validate protocol ──────────────────────────────────────────────────
-        if not request.startswith("PLAY "):
+        parts = request.split()
+        if len(parts) != 2 or parts[0] != "PLAY":
             conn.sendall(b"ERROR: Invalid Protocol. Usage: PLAY <song>\n")
             log.warning(f"[!] {addr} bad request: {request!r}")
             return
 
-        song_name = request[5:].strip()
-        if not song_name:
-            conn.sendall(b"ERROR: Missing song name\n")
-            log.warning(f"[!] {addr} missing song name: {request!r}")
-            return
-
+        song_name = parts[1]
         file_path = safe_song_path(song_name)
-        
+
         if file_path is None:
             conn.sendall(b"ERROR: Invalid filename\n")
             log.warning(f"[!] {addr} path traversal attempt: {song_name!r}")
@@ -164,7 +166,9 @@ def main():
     server_sock.listen(10)
 
     secure_server = ssl_ctx.wrap_socket(server_sock, server_side=True)
+    secure_server.settimeout(1.0)   # allows Ctrl+C to be caught every 1s
     log.info(f"[*] Secure server on {HOST}:{PORT}  (TLS 1.2+, multi-client ready)")
+    log.info("[*] Press Ctrl+C to stop the server.")
 
     while True:
         try:
@@ -177,6 +181,8 @@ def main():
         except KeyboardInterrupt:
             log.info("[*] Server shutting down.")
             break
+        except socket.timeout:
+            continue   # no connection in last 1s, loop again (allows Ctrl+C)
         except Exception as e:
             log.error(f"[!] Accept error: {e}")
             continue
