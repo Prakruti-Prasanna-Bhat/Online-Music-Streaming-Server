@@ -216,7 +216,11 @@ if __name__ == "__main__":
     print("══════════════════════════════════════")
     print("   Secure Adaptive Music Streamer")
     print("══════════════════════════════════════")
-    song = input("Enter song name (e.g., song.mp3): ").strip()
+    try:
+        song = input("Enter song name (e.g., song.mp3): ").strip()
+    except KeyboardInterrupt:
+        print("\n[*] Exiting.")
+        sys.exit(0)
     if song:
         request_song(song)
     else:
