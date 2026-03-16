@@ -116,35 +116,43 @@ def request_song(song_name: str):
             last_check = time.time()
             stream_t0  = time.time()
 
-            with open(output_file, "wb") as f:
-                while received < file_size:
-                    try:
-                        chunk = conn.recv(buf_size)
-                    except socket.timeout:
-                        print("\n[!] Stalled — no data received within timeout.")
-                        break
+            try:
+                with open(output_file, "wb") as f:
+                    while received < file_size:
+                        try:
+                            chunk = conn.recv(buf_size)
+                        except socket.timeout:
+                            print("\n[!] Stalled — no data received within timeout.")
+                            break
 
-                    if not chunk:
-                        break   # server closed connection
+                        if not chunk:
+                            break   # server closed connection
 
-                    f.write(chunk)
-                    received += len(chunk)
+                        f.write(chunk)
+                        received += len(chunk)
 
-                    # Progress bar
-                    pct = (received / file_size) * 100
-                    sys.stdout.write(f"\r[*] Progress: {pct:.1f}%  ({received}/{file_size} bytes)")
-                    sys.stdout.flush()
+                        # Progress bar
+                        pct = (received / file_size) * 100
+                        sys.stdout.write(f"\r[*] Progress: {pct:.1f}%  ({received}/{file_size} bytes)")
+                        sys.stdout.flush()
 
-                    # ── Adaptive buffer: re-sample every 0.5 s ─────────────────
-                    now = time.time()
-                    if now - last_check >= 0.5:
-                        elapsed    = now - stream_t0
-                        mid_speed  = (received / (1024 * 1024)) / elapsed if elapsed > 0 else 0
-                        new_buf    = pick_buffer(mid_speed)
-                        if new_buf != buf_size:
-                            buf_size = new_buf
-                            print(f"\n[Adaptive] Speed ~{mid_speed:.2f} MB/s → buffer: {buf_size // 1024} KB")
-                        last_check = now
+                        # ── Adaptive buffer: re-sample every 0.5 s ─────────────
+                        now = time.time()
+                        if now - last_check >= 0.5:
+                            elapsed    = now - stream_t0
+                            mid_speed  = (received / (1024 * 1024)) / elapsed if elapsed > 0 else 0
+                            new_buf    = pick_buffer(mid_speed)
+                            if new_buf != buf_size:
+                                buf_size = new_buf
+                                print(f"\n[Adaptive] Speed ~{mid_speed:.2f} MB/s → buffer: {buf_size // 1024} KB")
+                            last_check = now
+
+            except KeyboardInterrupt:
+                print(f"\n[*] Download cancelled by user.")
+                conn.close()
+                if os.path.exists(output_file):
+                    os.remove(output_file)   # clean up partial file
+                return
 
             conn.close()
 
@@ -199,7 +207,7 @@ def request_song(song_name: str):
             log_performance(song_name, latency_ms, throughput, "N/A", f"SSL_ERROR")
             break   # SSL errors are usually not retryable
         except ConnectionRefusedError:
-            print(f"[!] Server refused connection — is it running on {HOST}:{PORT}?")
+            print(f"[!] Server refused connection — is server.py running on {HOST}:{PORT}?")
             break
         except Exception as e:
             print(f"[!] Unexpected error: {e}")
