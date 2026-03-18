@@ -104,6 +104,41 @@ def client_worker(client_id: int, song_name: str):
             f"speed: {result['throughput']:.2f} MB/s"
         )
 
+# ── Summary printer (reused for normal exit and Ctrl+C) ────────────────────────
+def print_summary(total_clients, song, wall_time):
+    ok        = [r for r in results if r["status"] == "OK"]
+    fail      = [r for r in results if r["status"] != "OK"]
+    latencies = [r["latency_ms"] for r in ok]
+    speeds    = [r["throughput"] for r in ok]
+
+    print(f"\n── Summary ────────────────────────────────────────")
+    print(f"  Total clients     : {total_clients}")
+    print(f"  Successful        : {len(ok)}")
+    print(f"  Failed            : {len(fail)}")
+    print(f"  Wall-clock time   : {wall_time:.2f} s")
+
+    if ok:
+        print(f"  Avg latency       : {sum(latencies)/len(latencies):.1f} ms")
+        print(f"  Min / Max latency : {min(latencies):.1f} / {max(latencies):.1f} ms")
+        print(f"  Avg throughput    : {sum(speeds)/len(speeds):.2f} MB/s")
+        print(f"  Min / Max speed   : {min(speeds):.2f} / {max(speeds):.2f} MB/s")
+
+    # Write to log
+    with open("stress_test_log.txt", "a") as f:
+        f.write(
+            f"\n[{time.ctime()}] Clients: {total_clients} | Song: {song} | "
+            f"OK: {len(ok)} | Fail: {len(fail)} | "
+            f"Wall: {wall_time:.2f}s"
+        )
+        if ok:
+            f.write(
+                f" | Avg latency: {sum(latencies)/len(latencies):.1f}ms"
+                f" | Avg speed: {sum(speeds)/len(speeds):.2f}MB/s\n"
+            )
+
+    print(f"  Results saved to  : stress_test_log.txt")
+    print(f"══════════════════════════════════════════════════\n")
+
 # ── Main ───────────────────────────────────────────────────────────────────────
 def main():
     parser = argparse.ArgumentParser(description="Multi-client stress tester")
@@ -119,50 +154,21 @@ def main():
     wall_start = time.time()
 
     for i in range(1, args.clients + 1):
-        t = threading.Thread(target=client_worker, args=(i, args.song))
+        t = threading.Thread(target=client_worker, args=(i, args.song), daemon=True)
         threads.append(t)
 
     # Launch all at once
     for t in threads:
         t.start()
-    for t in threads:
-        t.join()
+
+    try:
+        for t in threads:
+            t.join()
+    except KeyboardInterrupt:
+        print(f"\n[*] Interrupted — printing partial summary...")
 
     wall_time = time.time() - wall_start
-
-    # ── Aggregate stats ────────────────────────────────────────────────────────
-    ok         = [r for r in results if r["status"] == "OK"]
-    fail       = [r for r in results if r["status"] != "OK"]
-    latencies  = [r["latency_ms"]  for r in ok]
-    speeds     = [r["throughput"]  for r in ok]
-
-    print(f"\n── Summary ────────────────────────────────────────")
-    print(f"  Total clients     : {args.clients}")
-    print(f"  Successful        : {len(ok)}")
-    print(f"  Failed            : {len(fail)}")
-    print(f"  Wall-clock time   : {wall_time:.2f} s")
-
-    if ok:
-        print(f"  Avg latency       : {sum(latencies)/len(latencies):.1f} ms")
-        print(f"  Min / Max latency : {min(latencies):.1f} / {max(latencies):.1f} ms")
-        print(f"  Avg throughput    : {sum(speeds)/len(speeds):.2f} MB/s")
-        print(f"  Min / Max speed   : {min(speeds):.2f} / {max(speeds):.2f} MB/s")
-
-    # Write to log
-    with open("stress_test_log.txt", "a") as f:
-        f.write(
-            f"\n[{time.ctime()}] Clients: {args.clients} | Song: {args.song} | "
-            f"OK: {len(ok)} | Fail: {len(fail)} | "
-            f"Wall: {wall_time:.2f}s"
-        )
-        if ok:
-            f.write(
-                f" | Avg latency: {sum(latencies)/len(latencies):.1f}ms"
-                f" | Avg speed: {sum(speeds)/len(speeds):.2f}MB/s\n"
-            )
-
-    print(f"  Results saved to  : stress_test_log.txt")
-    print(f"══════════════════════════════════════════════════\n")
+    print_summary(args.clients, args.song, wall_time)
 
 if __name__ == "__main__":
     main()
