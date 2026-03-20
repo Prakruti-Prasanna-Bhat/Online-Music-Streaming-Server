@@ -28,9 +28,9 @@ BUF_FAST   = 65_536   # > 1.5 MB/s
 
 # ── SSL Context ────────────────────────────────────────────────────────────────
 ssl_ctx = ssl.create_default_context()
-ssl_ctx.check_hostname = False
-ssl_ctx.verify_mode    = ssl.CERT_NONE   # use CERT_REQUIRED + CA bundle in production
-
+ssl_ctx.load_verify_locations("certs/server.crt")  # verify against our known certificate
+ssl_ctx.verify_mode    = ssl.CERT_REQUIRED          # reject any other certificate
+ssl_ctx.check_hostname = False                      # skip hostname check — connecting by IP not domain
 # ── Helpers ────────────────────────────────────────────────────────────────────
 def play_file(filepath):
     """Open the file in the system default player."""
