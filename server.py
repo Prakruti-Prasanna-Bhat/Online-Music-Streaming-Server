@@ -93,7 +93,7 @@ def handle_client(conn: ssl.SSLSocket, addr):
             return
 
         # ── Validate protocol ──────────────────────────────────────────────────
-        parts = request.split()
+        parts = request.split(" ", 1)
         if len(parts) != 2 or parts[0] != "PLAY":
             conn.sendall(b"ERROR: Invalid Protocol. Usage: PLAY <song>\n")
             log.warning(f"[!] {addr} bad request: {request!r}")
@@ -114,7 +114,8 @@ def handle_client(conn: ssl.SSLSocket, addr):
 
         file_size = os.path.getsize(file_path)
         checksum  = compute_md5(file_path)
-
+        safe_timeout = max(60.0, (file_size / (1024 * 1024)) / 0.05)
+        conn.settimeout(safe_timeout)
         # Header: OK <file_size> <md5>
         conn.sendall(f"OK {file_size} {checksum}\n".encode())
         log.info(f"[*] Streaming '{song_name}' ({file_size/1024:.1f} KB) → {addr}")
