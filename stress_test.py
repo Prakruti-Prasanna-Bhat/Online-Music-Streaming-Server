@@ -65,6 +65,11 @@ def client_worker(client_id: int, song_name: str):
         file_size    = int(header[1])
         expected_md5 = header[2]
 
+        # ── Fix: dynamic timeout based on file size ────────────────────────────
+        # assumes worst case ~0.05 MB/s under heavy load, minimum 60s
+        safe_timeout = max(60.0, (file_size / (1024 * 1024)) / 0.05)
+        conn.settimeout(safe_timeout)
+
         data      = b""
         received  = 0
         stream_t0 = time.time()
